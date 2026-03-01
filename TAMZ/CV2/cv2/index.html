@@ -118,11 +118,25 @@
               </ion-card-content>
 </ion-card>
 
+<ion-card>
+              <ion-card-header>
+                <ion-card-title>Čas do konce semestru</ion-card-title>
+              </ion-card-header>
+
+              <ion-card-content id="doKonceSemestru">
+                
+              </ion-card-content>
+
+                
+</ion-card>
+
         </ion-content>
 
     </ion-app>
 
-    <script>
+    <script type="module">
+
+        import { differenceInMilliseconds, differenceInHours, differenceInSeconds, differenceInMinutes, differenceInDays } from "date-fns";
 
         // https://www.w3schools.com/js/js_variables.asp
 
@@ -134,11 +148,12 @@
 
         
 
-        console.log(konec);
+        //console.log(konec);
 
         let currentDate = new Date();
 
-        console.log(currentDate);
+
+        //console.log(currentDate);
 
 
         // datumy
@@ -148,26 +163,86 @@
         //22.04.2026 - Sportovní den
         let sportDay = new Date('2026-4-22');
 
+        // 16.5.2026 - Konec výuky v letním semestru
         let konec = new Date('2026-5-16');
         
 
 
         let actDate = document.getElementById('actualDate');
 
+        
+
         let first = document.getElementById('firstDate');
         let second = document.getElementById('secondDate');
         let third = document.getElementById('thirdDate');
 
+        let arr = [first,second,third];
 
-        first.innerHTML = `Začátek výuky v letním semestru: ${first.getDate()}. ${first.getMonth()+1}. ${first.getFullYear()}`;
+        //Výpis důležitých termínů
+
+        first.innerHTML = `Začátek výuky v letním semestru: ${zacVyuky.getDate()}. ${zacVyuky.getMonth()+1}. ${zacVyuky.getFullYear()}
+        <br>
+        Zbylých dnů: <div id="vys0">${Math.ceil((zacVyuky - currentDate) / 1000 / 60 / 60 / 24)}</div>`;
+
+        second.innerHTML = `Sportovní den: ${sportDay.getDate()}. ${sportDay.getMonth()+1}. ${sportDay.getFullYear()}
+        <br>
+        Zbylých dnů: <div id="vys1">${Math.ceil((sportDay - currentDate) / 1000 / 60 / 60 / 24)}</div>`;
+
+        third.innerHTML = `Konec výuky v letním semestru: ${konec.getDate()}. ${konec.getMonth()+1}. ${konec.getFullYear()}
+        <br>
+        Zbylých dnů: <div id="vys2">${Math.ceil((konec - currentDate) / 1000 / 60 / 60 / 24)}</div>`;
+
 
         actDate.innerHTML = "Dnešní datum: " + currentDate.getDate() + "/" + (currentDate.getMonth() + 1) + "/" + currentDate.getFullYear();
 
-        
-        let vysledek = Math.ceil((konec - currentDate) / 1000 / 60 / 60 / 24);
+        //Nastavení progress baru
+        progressB.value = currentDate.getDate() / 31;
 
-        console.log(vysledek);
+        // pro každý prvek v arr (zde jsou "uloženy" termíny, zkontrolujeme jak zabarvit výsledek (1 den a méně červeně, více než jeden den zeleně))
 
+        for (let i in arr)
+        {
+            if (document.getElementById(`vys${(i)}`).textContent <= 1){
+                arr[i].style.color = '#a60505';
+            }
+            else if (document.getElementById(`vys${(i)}`).textContent > 0){
+                arr[i].style.color = '#1bab02';
+            }
+        }
+
+
+        //Čas do konce semestru v ms    / 1000 / 60 / 60 / 24
+
+
+
+        let doKonceSem = document.getElementById('doKonceSemestru');
+
+        function updateCountdown() {
+                let now = new Date();
+
+                let vysledek = konec - now;
+
+                let dny = differenceInDays(konec,now);
+                let hodiny = differenceInHours(konec,now)%24; 
+                let minuty = differenceInMinutes(konec,now)%60; 
+                let sekundy = differenceInSeconds(konec,now)%60;
+                let ms = differenceInMilliseconds(konec,now)%1000;
+
+                doKonceSem.innerHTML = `Do konce semestru zbývá: ${dny} dní, ${hodiny} hodin, ${minuty} minut,  ${sekundy} sekund.`;
+
+        }
+
+        let timer = setInterval(updateCountdown,1000);
+        updateCountdown();
+
+
+
+
+        //if(document.getElementById('vys1').textContent < 0){
+        //    document.getElementById('firstDate').style.color = '#a60505';
+        //}
+
+        //console.log();
 
 
 
@@ -177,9 +252,8 @@
             let selected = new Date(this.value);
             console.log("selected",selected);
 
-            dateText.innerHTML = selected.getDate() + ". " + (selected.getMonth()+1) + ". " + selected.getFullYear();
+            dateText.innerHTML =  `Zvolené datum: ${selected.getDate() + ". " + (selected.getMonth()+1) + ". " + selected.getFullYear()}`;
 
-            progressB.value = selected.getDate() / 31;
         });
 
     </script>
