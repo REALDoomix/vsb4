@@ -116,6 +116,21 @@
               <ion-card-content id="thirdDate">
                 
               </ion-card-content>
+
+              <ion-toast id="warning-toast" message="Některé termíny budou brzy expirovat, nebo již expirovaly! (<7 dní) " duration="5000"></ion-toast>
+</ion-card>
+
+<ion-card>
+    <ion-card-header>
+        <ion-card-title>Průběh semestru</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+        <ion-progress-bar id="progress-bar-sem">
+
+        </ion-progress-bar>
+        <span id="progressSemestru"></span>
+    </ion-card-content>
 </ion-card>
 
 <ion-card>
@@ -144,6 +159,9 @@
 
         let progressB = document.getElementById('io-progress-bar');
 
+        let progressBSem = document.getElementById('progress-bar-sem');
+
+
         //let progress = 0;
 
         
@@ -165,6 +183,21 @@
 
         // 16.5.2026 - Konec výuky v letním semestru
         let konec = new Date('2026-5-16');
+
+        let pocetDniOdZac = differenceInDays(currentDate,zacVyuky);
+
+        let maxPocetDni = differenceInDays(konec,zacVyuky);
+        
+        progressBSem.value =  pocetDniOdZac / maxPocetDni;
+
+        document.getElementById('progressSemestru').innerHTML = `(${pocetDniOdZac}/${maxPocetDni})`;
+
+        
+        
+        
+
+        //console.log(differenceInDays(currentDate,zacVyuky) / differenceInDays(konec,zacVyuky));
+        //console.log(differenceInDays(konec,zacVyuky));
         
 
 
@@ -198,15 +231,23 @@
         //Nastavení progress baru
         progressB.value = currentDate.getDate() / 31;
 
+        var toast = document.getElementById('warning-toast');
+
         // pro každý prvek v arr (zde jsou "uloženy" termíny, zkontrolujeme jak zabarvit výsledek (1 den a méně červeně, více než jeden den zeleně))
 
         for (let i in arr)
         {
-            if (document.getElementById(`vys${(i)}`).textContent <= 1){
-                arr[i].style.color = '#a60505';
+            if(document.getElementById(`vys${i}`).textContent <= 7){
+                 toast.isOpen = true;   
             }
-            else if (document.getElementById(`vys${(i)}`).textContent > 0){
-                arr[i].style.color = '#1bab02';
+
+            if (document.getElementById(`vys${(i)}`).textContent <= 0){
+                arr[i].style.color = '#4d4f4d';
+            }
+            else if (document.getElementById(`vys${(i)}`).textContent > 0 && document.getElementById(`vys${(i)}`).textContent < 30){
+                arr[i].style.color = '#f58300';
+            } else {
+                arr[i].style.color = '#10f500';
             }
         }
 
