@@ -33,7 +33,7 @@ class myApp:
         self.ent_in.insert(0, '0')
 
         self.ca = Canvas(self.right_frame, width=300, height=400)
-        self.photo = PhotoImage(file='cv01\cv01_pack.png')
+        self.photo = PhotoImage(file='th_empty.png')
         self.ca.create_image(150, 200, image=self.photo)
         # Vychozi souradnice pro obdelnik k teplomeru: 146, 292, 152, 230
 
