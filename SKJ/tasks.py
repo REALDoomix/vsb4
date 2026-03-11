@@ -1,200 +1,304 @@
-import dataclasses
-from typing import Callable, Generic, List, Optional, TypeVar
+import time
 
 
-def cached(f):
+class Vector:
     """
-    Create a decorator that caches up to 3 function results, based on the same parameter values.
+    Implement the methods below to create a 3D vector class.
 
-    When `f` is called with the same parameter values that are already in the cache, return the
-    stored result associated with these parameter values. You can assume that `f` receives only
-    positional arguments (you can ignore keyword arguments).
+    Magic methods cheatsheet: https://rszalski.github.io/magicmethods
+    """
 
-    When `f` is called with new parameter values, forget the oldest inserted result in the cache
-    if the cache is already full.
-
+    """
+    Implement a constructor that takes three coordinates (x, y, z) and stores
+    them as attributes with the same names in the Vector.
+    Default value for all coordinates should be 0.
     Example:
-        @cached
-        def fn(a, b):
-            return a + b # imagine an expensive computation
-
-        fn(1, 2) == 3 # computed
-        fn(1, 2) == 3 # returned from cache, `a + b` is not executed
-        fn(3, 4) == 7 # computed
-        fn(3, 5) == 8 # computed
-        fn(3, 6) == 9 # computed, (1, 2) was now forgotten
-        fn(1, 2) == 3 # computed again, (3, 4) was now forgotten
+        v = Vector(1.2, 3.5, 4.1)
+        v.x # 1.2
+        v = Vector(z=1) # == Vector(0, 0, 1)
     """
+    def __init__(self, x=0, y=0, z=0):
+        self.x = x
+        self.y = y
+        self.z = z
+
+    """
+    Implement vector addition and subtraction using `+` and `-` operators.
+    Both operators should return a new vector and not modify its operands.
+    If the second operand isn't a vector, raise ValueError.
+    Example:
+        Vector(1, 2, 3) + Vector(4, 5, 6) # Vector(5, 7, 8)
+        Vector(1, 2, 3) - Vector(4, 5, 6) # Vector(-3, -3, -3)
+    Hint:
+        You can use isinstance(object, class) to check whether `object` is an instance of `class`.
+    """
+    def __add__(self, sec):
+        if(isinstance(sec,Vector)):
+            x = self.x + sec.x
+            y = self.y + sec.y
+            z = self.z + sec.z
+            return Vector(x,y,z)
+    
+        raise(ValueError)
+
+
+    def __sub__(self, sec):
+        if(isinstance(sec,Vector)):
+            x = self.x - sec.x
+            y = self.y - sec.y
+            z = self.z - sec.z
+            return Vector(x,y,z)
+        
+        raise(ValueError)
+
+    """
+    Implement the `==` comparison operator for Vector that returns True if both vectors have the same attributes.
+    If the second operand isn't a vector, return False.
+    Example:
+        Vector(1, 1, 1) == Vector(1, 1, 1)  # True
+        Vector(1, 1, 1) == Vector(2, 1, 1)  # False
+        Vector(1, 2, 3) == 5                # False
+    """
+
+    def __eq__(self, sec):
+        if(isinstance(sec,Vector)):
+            return self.x == sec.x and self.y == sec.y and self.z == sec.z
+        
+        return False
+
+    """
+    Implement string representation of Vector in the form `(x, y, z)`.
+    Example:
+        str(Vector(1, 2, 3))    # (1, 2, 3)
+        print(Vector(0, 0, 0))  # (0, 0, 0)
+    """
+    def __str__(self):
+        return f"({self.x}, {self.y}, {self.z})"
+
+
+    """
+    Implement indexing for the vector, both for reading and writing.
+    If the index is out of range (> 2), raise IndexError.
+    Example:
+        v = Vector(1, 2, 3)
+        v[0] # 1
+        v[2] # 3
+        v[1] = 5 # v.y == 5
+
+        v[10] # raises IndexError
+    """
+    def __getitem__(self, key):
+        if(key > 2 or key < 0):
+            raise(IndexError)
+        
+        elif(key == 0):
+            return self.x
+        
+        elif(key == 1):
+            return self.y
+        
+        return self.z
+        
+
+    def __setitem__(self, key, value):
+        if(key > 2 or key < 0):
+            raise(IndexError)
+        
+        elif(key == 0):
+            self.x = value
+        
+        elif(key == 1):
+            self.y = value
+        
+        self.z = value
+
+    """
+    Implement the iterator protocol for the vector.
+    Hint:
+        Use `yield`.
+    Example:
+        v = Vector(1, 2, 3)
+        for x in v:
+            print(x) # prints 1, 2, 3
+    """
+    def __iter__(self):
+        for x in range(0,3):
+            yield self[x]
+
 
     
+class Observable:
+    """
+    Implement the `observer` design pattern.
+    Observable should have a `subscribe` method for adding new subscribers.
+    It should also have a `notify` method that calls all of the stored subscribers and passes them its parameters.
+    Example:
+        obs = Observable()
+
+        def fn1(x):
+            print("fn1: {}".format(x))
+
+        def fn2(x):
+            print("fn2: {}".format(x))
+
+        unsub1 = obs.subscribe(fn1)     # fn1 will be called everytime obs is notified
+        unsub2 = obs.subscribe(fn2)     # fn2 will be called everytime obs is notified
+        obs.notify(5)                   # should call fn1(5) and fn2(5)
+        unsub1()                        # fn1 is no longer subscribed
+        obs.notify(6)                   # should call fn2(6)
+    """
+
+    def __init__(self):
+        self.list = []
+
+    def subscribe(self, subscriber):
+        """
+        Add subscriber to collection of subscribers.
+        Return a function that will remove this subscriber from the collection when called.
+        """
+        self.list.append(subscriber)
+
+        def unsubscribe():
+            if (subscriber in self.list):
+                self.list.remove(subscriber)
+
+        return unsubscribe
+        
+
+    def notify(self, *args, **kwargs):
+        """
+        Pass all parameters given to this function to all stored subscribers by calling them.
+        """
+
+        for sub in self.list:
+            sub(*args,**kwargs)
+
+
+
+class UpperCaseDecorator:
+    """
+    Implement the `decorator` design pattern.
+    UpperCaseDecorator should decorate a file which will be passed to its constructor.
+    It should make all lower case characters written to the file uppercase and remove all
+    upper case characters.
+    It is enough to support the `write` and `writelines` methods of file.
+    Example:
+        with open("file.txt", "w") as f:
+            decorated = UpperCaseDecorator(f)
+            decorated.write("Hello World\n")
+            decorated.writelines(["Nice to MEET\n", "YOU"])
+
+        file.txt content after the above code is executed:
+        ELLO ORLD
+        ICE TO
+    """
+    def __init__(self, f):
+        self.f = f
+        
+
+
+    def write(self, s):
+        
+        pass
+
+    def writelines(self):
+        pass
+
     pass
 
 
-T = TypeVar("T")
-
-
-@dataclasses.dataclass
-class ParseResult(Generic[T]):
+class GameOfLife:
     """
-    Represents result of a parser invocation.
-    If `value` is `None`, then the parsing was not successful.
-    `rest` contains the rest of the input string if parsing was succesful.
-    """
-    value: Optional[T]
-    rest: str
+    Implement "Game of life" (https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
 
-    @staticmethod
-    def invalid(rest: str) -> "ParseResult":
-        return ParseResult(value=None, rest=rest)
+    The game board will be represented with nested tuples, where '.'
+    marks a dead cell and 'x' marks a live cell. Cells that are out of bounds of the board are
+    assumed to be dead. The board grid will always be a square.
 
-    def is_valid(self) -> bool:
-        return self.value is not None
+    Try some patterns from wikipedia + the provided tests to test the functionality.
 
-
-"""
-Represents a parser: a function that takes a string as an input and returns a `ParseResult`.
-"""
-Parser = Callable[[str], ParseResult[T]]
-
-"""
-Below are functions that create new parsers.
-They should serve as LEGO blocks that can be combined together to build more complicated parsers.
-See tests for examples of usage.
-
-Note that parsers are always applied to the beginning of the string:
-```python
-parser = parser_char("a")
-parser("a")  # ParseResult(value="a", rest="")
-parser("xa") # ParseResult(value=None, rest="xa")
-```
-"""
-
-
-def parser_char(char: str) -> Parser[str]:
-    """
-    Return a parser that will parse a single character, `char`, from the beginning of the input
-    string.
+    The GameOfLife objects should be immutable, i.e. the move method will return a new instance
+    of GameOfLife.
 
     Example:
-        ```python
-        parser_char("x")("x") => ParseResult(value="x", rest="")
-        parser_char("x")("xa") => ParseResult(value="x", rest="a")
-        parser_char("y")("xa") => ParseResult(value=None, rest="xa")
-        ```
+        game = GameOfLife((
+            ('.', '.', '.'),
+            ('.', 'x', '.'),
+            ('.', 'x', '.'),
+            ('.', 'x', '.'),
+            ('.', '.', '.')
+        ))
+        game.alive()    # 3
+        game.dead()     # 12
+        x = game.move() # 'game' doesn't change
+        # x.board:
+        (
+            ('.', '.', '.'),
+            ('.', '.', '.'),
+            ('x', 'x', 'x'),
+            ('.', '.', '.'),
+            ('.', '.', '.')
+        )
+
+        str(x)
+        ...\n
+        ...\n
+        xxx\n
+        ...\n
+        ...\n
     """
 
+    def __init__(self, board):
+        """
+        Create a constructor that receives the game board and stores it in an attribute called
+        'board'.
+        """
+        pass
 
-def parser_repeat(parser: Parser[T]) -> Parser[List[T]]:
+    def move(self):
+        """
+        Simulate one iteration of the game and return a new instance of GameOfLife containing
+        the new board state.
+        """
+        pass
+
+    def alive(self):
+        """
+        Return the number of cells that are alive.
+        """
+        pass
+
+    def dead(self):
+        """
+        Return the number of cells that are dead.
+        """
+        pass
+
+    def __repr__(self):
+        """
+        Return a string that represents the state of the board in a single string (with newlines
+        for each board row).
+        """
+        pass
+
+
+def play_game(game, n):
     """
-    Return a parser that will invoke `parser` repeatedly, while it still matches something in the
-    input.
-
-    Example:
-        ```python
-        parser_a = parser_char("a")
-        parser = parser_repeat(parser_a)
-        parser("aaax") => ParseResult(value=["a", "a", "a"], rest="x")
-        parser("xa") => ParseResult(value=[], rest="xa")
-        ```
+    You can use this function to render the game for n iterations
     """
+    for i in range(n):
+        print(game)
+        game = game.move()
+        time.sleep(0.25)  # sleep to see the output
 
 
-def parser_seq(parsers: List[Parser]) -> Parser:
-    """
-    Create a parser that will apply the given `parsers` successively, one after the other.
-    The result will be successful only if all parsers succeed.
-
-    Example:
-        ```python
-        parser_a = parser_char("a")
-        parser_b = parser_char("b")
-        parser = parser_seq([parser_a, parser_b, parser_a])
-        parser("abax") => ParseResult(value=["a", "b", "a"], rest="x")
-        parser("ab") => ParseResult(value=None, rest="ab")
-        ```
-    """
-
-
-def parser_choice(parsers: List[Parser]) -> Parser:
-    """
-    Return a parser that will return the result of the first parser in `parsers` that matches something
-    in the input.
-
-    Example:
-        ```python
-        parser_a = parser_char("a")
-        parser_b = parser_char("b")
-        parser = parser_choice([parser_a, parser_b])
-        parser("ax") => ParseResult(value="a", rest="x")
-        parser("bx") => ParseResult(value="b", rest="x")
-        parser("cx") => ParseResult(value=None, rest="cx")
-        ```
-    """
-
-
-R = TypeVar("R")
-
-
-def parser_map(parser: Parser[R], map_fn: Callable[[R], Optional[T]]) -> Parser[T]:
-    """
-    Return a parser that will use `parser` to parse the input data, and if it is successful, it will
-    apply `map_fn` to the parsed value.
-    If `map_fn` returns `None`, then the parsing result will be invalid.
-
-    Example:
-        ```python
-        parser_a = parser_char("a")
-        parser = parser_map(parser_a, lambda x: x.upper())
-        parser("ax") => ParseResult(value="A", rest="x")
-        parser("bx") => ParseResult(value=None, rest="bx")
-
-        parser = parser_map(parser_a, lambda x: None)
-        parser("ax") => ParseResult(value=None, rest="ax")
-        ```
-    """
-
-
-def parser_matches(filter_fn: Callable[[str], bool]) -> Parser[str]:
-    """
-    Create a parser that will parse the first character from the input, if it is accepted by the
-    given `filter_fn`.
-
-    Example:
-        ```python
-        parser = parser_matches(lambda x: x in ("ab"))
-        parser("ax") => ParseResult(value="a", rest="x")
-        parser("bx") => ParseResult(value="b", rest="x")
-        parser("cx") => ParseResult(value=None, rest="cx")
-        parser("") => ParseResult(value=None, rest="")
-        ```
-    """
-
-
-# Use the functions above to implement the functions below.
-
-
-def parser_string(string: str) -> Parser[str]:
-    """
-    Create a parser that will parse the given `string`.
-
-    Example:
-        ```python
-        parser = parser_string("foo")
-        parser("foox") => ParseResult(value="foo", rest="x")
-        parser("fo") => ParseResult(value=None, rest="fo")
-        ```
-    """
-
-
-def parser_int() -> Parser[int]:
-    """
-    Create a parser that will parse a non-negative integer (you don't have to deal with
-    `-` at the beginning).
-
-    Example:
-        ```python
-        parser = parser_int()
-        parser("123x") => ParseResult(value=123, rest="x")
-        parser("foo") => ParseResult(value=None, rest="foo")
-        ```
-    """
+# this code will only be executed if you run `python tasks.py`
+# it will not be executed when tasks.py is imported
+if __name__ == "__main__":
+    play_game(GameOfLife((
+        ('.', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', '.', '.'),
+    )), 10)
