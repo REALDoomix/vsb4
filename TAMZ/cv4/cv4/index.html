@@ -1,0 +1,84 @@
+
+<!DOCTYPE html>
+<html lang="cs">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ionic Tutorial 04 - Celá Stránka</title>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" />
+
+</head>
+
+<body>
+    <ion-app>
+        <!-- HLAVIČKA -->
+        <ion-header>
+            <ion-toolbar>
+                <ion-title>BMI kalkulačka</ion-title>
+            </ion-toolbar>
+        </ion-header>
+
+        <ion-card>
+          <ion-card-content>
+            <ion-item>
+            <ion-input placeholder="Username" class="ion-align-self-end" ></ion-input>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-content>
+            <ion-item>
+              <ion-input placeholder="Age" class="ion-align-self-end"></ion-input>
+            </ion-item>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-header>
+             <ion-card-title>Gender</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-radio-group value="male">
+              <ion-radio value="male">Male</ion-radio><br />
+              <ion-radio value="strawberries">Female</ion-radio><br />
+          </ion-radio-group>
+          </ion-card-content>
+        </ion-card>
+
+        <ion-card>
+          <ion-card-content>
+            <ion-range label-placement="start" label="Height"value="50" pin="true" max="250">
+              <ion-icon name="speedometer-outline" slot="start"></ion-icon>
+            </ion-range>
+            <ion-range label-placement="start" label="Weight" value="20" pin="true" max="200">
+              <ion-icon name="speedometer-outline" slot="start"></ion-icon>
+
+            </ion-range>
+          </ion-card-content>
+        </ion-card>
+
+
+
+
+
+        <!-- ZÁPATÍ -->
+        <ion-footer>
+            <ion-toolbar>
+                <ion-title>© 2026 TAMZ</ion-title>
+            </ion-toolbar>
+        </ion-footer>
+
+    </ion-app>
+
+    <script>
+
+
+
+    </script>
+</body>
+
+</html>

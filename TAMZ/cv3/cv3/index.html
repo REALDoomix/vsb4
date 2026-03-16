@@ -142,14 +142,14 @@
 
                 for(let i = 0; i <= localStorage.length; i++){
                     if (localStorage.key(i) == null){
-                        console.log(`Key ${i} is null`);
+                        //console.log(`Key ${i} is null`);
                         key = `key-${lastKey+1}`;
                         lastKey = 0;
                         break;
                     } else {
                          lastKey = Number(localStorage.key(i).substring(4));
-                         console.log(`Key ${i} has a value`);
-                         console.log(`Asserting last key as ${lastKey}`);
+                         //console.log(`Key ${i} has a value`);
+                         //console.log(`Asserting last key as ${lastKey}`);
                     }
                 }
             }
@@ -173,7 +173,7 @@
 
                 let item = document.createElement("ion-item");
                 item.innerHTML = `
-                    <ion-label>${record.name}</ion-label>
+                    <ion-label>(${key}) |  ${record.name}</ion-label>
                     <ion-button slot="end" color="danger" onclick="deleteItem('${key}')">
                         <ion-icon slot="icon-only" name="trash"></ion-icon>
                     </ion-button>`;

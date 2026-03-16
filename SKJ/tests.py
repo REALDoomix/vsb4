@@ -1,322 +1,244 @@
-import string
-from typing import TypeVar
+import tempfile
 
 import pytest
-
-from tasks import ParseResult, cached, parser_char, parser_choice, parser_int, parser_map, \
-    parser_matches, \
-    parser_repeat, \
-    parser_seq, parser_string
+from tasks import Vector, UpperCaseDecorator, Observable, GameOfLife
 
 
-def test_cached():
-    counts = 0
+def test_vector_init():
+    vec = Vector(1.2, 3.4, 5.6)
+    assert vec.x == 1.2
+    assert vec.y == 3.4
+    assert vec.z == 5.6
 
-    @cached
-    def counter(*a):
-        nonlocal counts
-        counts += sum(a)
-        return sum(a)
+    vec = Vector()
+    assert vec.x == 0
+    assert vec.y == 0
+    assert vec.z == 0
 
-    assert counter(1) == 1
-    assert counter(1) == 1
-    assert counter(2) == 2
-    assert counts == 3
-    assert counter(1) == 1
-    assert counts == 3
-    assert counter(2) == 2
-    assert counts == 3
-    assert counter(3) == 3
-    assert counts == 6
-    assert counter(3) == 3
-    assert counts == 6
-    assert counter(4) == 4
-    assert counts == 10
-    assert counter(1) == 1
-    assert counts == 11
-
-    counts = 0
-    assert counter(1, 2) == 3
-    assert counts == 3
-    assert counter(1, 2) == 3
-    assert counter(1, 3) == 4
-    assert counts == 7
-    assert counter(0, 1) == 1
-    assert counts == 8
-    assert counter(0, 1) == 1
-    assert counts == 8
-    assert counter(1, 3) == 4
-    assert counts == 8
-    assert counter(1, 2) == 3
-    assert counts == 8
-    assert counter(1, 4) == 5
-    assert counts == 13
-    assert counter(1, 2) == 3
-    assert counts == 16
+    vec = Vector(z=3)
+    assert vec.x == 0
+    assert vec.y == 0
+    assert vec.z == 3
 
 
-T = TypeVar("T")
+def test_vector_add():
+    a = Vector(1, 2, 3)
+    b = Vector(3, 4, 5)
+    c = a + b
 
+    assert a.x == 1
+    assert a.y == 2
+    assert a.z == 3
+    assert b.x == 3
+    assert b.y == 4
+    assert b.z == 5
+    assert c.x == 4
+    assert c.y == 6
+    assert c.z == 8
 
-def check_valid(result: ParseResult[T], value: T, rest: str):
-    assert result.is_valid()
-    assert result.value == value
-    assert result.rest == rest
-
-
-def check_invalid(result: ParseResult[T], rest: str):
-    assert not result.is_valid()
-    assert result.rest == rest
-
-
-def test_parser_char_empty_input():
-    check_invalid(parser_char("x")(""), "")
-
-
-def test_parser_char_different_char():
-    check_invalid(parser_char("x")("a"), "a")
-
-
-def test_parser_char_same_input():
-    check_valid(parser_char("x")("x"), "x", "")
-
-
-def test_parser_char_more_inputs():
-    check_valid(parser_char("x")("xx"), "x", "x")
-    check_valid(parser_char("x")("xa"), "x", "a")
-
-
-def test_parser_char_whitespace_at_start():
-    check_invalid(parser_char("x")(" x"), " x")
-
-
-def test_parser_char_empty_char():
     with pytest.raises(ValueError):
-        parser_char("")
+        Vector(1, 2, 3) + 5
 
 
-def test_parser_char_multiple_chars():
+def test_vector_sub():
+    a = Vector(1, 2, 3)
+    b = Vector(3, 4, 5)
+    c = a - b
+
+    assert a.x == 1
+    assert a.y == 2
+    assert a.z == 3
+    assert b.x == 3
+    assert b.y == 4
+    assert b.z == 5
+    assert c.x == -2
+    assert c.y == -2
+    assert c.z == -2
+
     with pytest.raises(ValueError):
-        parser_char("xx")
+        Vector(1, 2, 3) - 5
 
 
-def test_parser_repeat_empty():
-    parser = parser_char("x")
-    parser = parser_repeat(parser)
-    check_valid(parser(""), [], "")
+def test_vector_eq():
+    assert Vector(0, 0, 0) == Vector(0, 0, 0)
+    assert Vector(1, 2, 3) == Vector(1, 2, 3)
+    assert Vector(1, 2, 3) != Vector(1, 2, 4)
+    assert Vector(1, 2, 3) != 5
 
 
-def test_parser_repeat_no_match():
-    parser = parser_char("x")
-    parser = parser_repeat(parser)
-    check_valid(parser("aaa"), [], "aaa")
+def test_vector_str():
+    assert str(Vector(0, 0, 0)) == "(0, 0, 0)"
+    assert str(Vector(1, 2, 3)) == "(1, 2, 3)"
 
 
-def test_parser_repeat_match_all():
-    parser = parser_char("x")
-    parser = parser_repeat(parser)
-    check_valid(parser("xxx"), ["x", "x", "x"], "")
+def test_vector_indexing():
+    v = Vector(1, 2, 3)
+    assert v[0] == 1
+    assert v[2] == 3
+    v[1] = 5
+    assert v[1] == 5
+    assert v.y == 5
+
+    with pytest.raises(IndexError):
+        a = v[10]
+
+    with pytest.raises(IndexError):
+        v[8] = 5
 
 
-def test_parser_repeat_match_some():
-    parser = parser_char("x")
-    parser = parser_repeat(parser)
-    check_valid(parser("xxab"), ["x", "x"], "ab")
+def test_vector_iteration():
+    v = Vector(1, 2, 3)
+    assert list(v) == [1, 2, 3]
+    assert list(v) == [1, 2, 3]
+
+    it = iter(v)
+    assert it is not v
+
+    it2 = iter(v)
+
+    assert next(it) == 1
+    assert next(it2) == 1
 
 
-def test_parser_repeat_call_multiple_times():
-    parser = parser_char("x")
-    parser = parser_repeat(parser)
+def test_observable_complex():
+    obs = Observable()
 
-    check_valid(parser("xxab"), ["x", "x"], "ab")
-    check_valid(parser("xxab"), ["x", "x"], "ab")
-    check_valid(parser("xxab"), ["x", "x"], "ab")
-    check_valid(parser("xxab"), ["x", "x"], "ab")
+    calls = [0, 0]
 
+    def fn1(x):
+        calls[0] += x
 
-def test_parser_seq_no_parser():
-    parser = parser_seq([])
-    check_valid(parser("asd"), [], "asd")
+    def fn2(x):
+        calls[1] += x
 
+    unsub1 = obs.subscribe(fn1)
+    unsub2 = obs.subscribe(fn2)
 
-def test_parser_seq_single_parser():
-    parser = parser_seq([
-        parser_char("a")
-    ])
-    check_valid(parser("a"), ["a"], "")
-    check_invalid(parser("x"), "x")
+    assert calls == [0, 0]
 
+    obs.notify(5)
+    assert calls == [5, 5]
 
-def test_parser_seq_multiple_parsers():
-    parser = parser_seq([
-        parser_char("a"),
-        parser_char("h"),
-        parser_char("o"),
-        parser_char("j"),
-    ])
-    check_invalid(parser(" ahoj"), " ahoj")
-    check_valid(parser("ahoj"), ["a", "h", "o", "j"], "")
-    check_valid(parser("ahojx"), ["a", "h", "o", "j"], "x")
-    check_invalid(parser("aho"), "aho")
+    unsub1()
+    obs.notify(6)
+    assert calls == [5, 11]
+    unsub2()
 
+    obs.notify(3)
+    assert calls == [5, 11]
 
-def test_parser_choice_no_parsers():
-    parser = parser_choice([])
-    check_invalid(parser("asd"), "asd")
+    args = [None, None]
+
+    def fn3(*p, **kw):
+        args[0] = p
+        args[1] = kw
+
+    obs.subscribe(fn3)
+    obs.notify(1, 2, 3, a=5, b=6)
+    assert args == [(1, 2, 3), {"a": 5, "b": 6}]
 
 
-def test_parser_choice_no_match():
-    parser = parser_choice([
-        parser_char("a"),
-        parser_char("b"),
-    ])
-    check_invalid(parser("x"), "x")
+def test_upper_case_decorator():
+    with tempfile.NamedTemporaryFile(mode="w+") as f:
+        decorator = UpperCaseDecorator(f)
+        decorator.write("Hello World\n")
+        decorator.writelines(["Prefer\n", "compOSItioN OVeR\n", "INHERITance\n"])
+        f.seek(0)
+        assert """ELLO ORLD
+REFER
+COMPTIO E
+ANCE
+""" == f.read()
 
 
-def test_parser_choice_match_first():
-    parser = parser_choice([
-        parser_char("a"),
-        parser_char("b"),
-    ])
-    check_valid(parser("ab"), "a", "b")
+def test_game_of_life_count():
+    g = GameOfLife((
+        ('.', '.', '.'),
+        ('.', '.', '.'),
+        ('.', '.', '.')
+    ))
+    assert g.alive() == 0
+    assert g.dead() == 9
+
+    g = GameOfLife((
+        ('x', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', 'x')
+    ))
+    assert g.alive() == 4
+    assert g.dead() == 5
 
 
-def test_parser_choice_match_last():
-    parser = parser_choice([
-        parser_char("a"),
-        parser_char("b"),
-    ])
-    check_valid(parser("bb"), "b", "b")
-
-
-def test_parser_choice_match_all():
-    parser = parser_choice([
-        parser_char("a"),
-        parser_char("a"),
-    ])
-    check_valid(parser("a"), "a", "")
-
-
-def test_parser_choice_match_partial_1():
-    parser_a = parser_seq([parser_char("a"), parser_char("b")])
-    parser_b = parser_seq([parser_char("a"), parser_char("c")])
-
-    parser = parser_choice([parser_a, parser_b])
-
-    check_valid(parser("abc"), ["a", "b"], "c")
-    check_valid(parser("acb"), ["a", "c"], "b")
-    check_invalid(parser("aabc"), "aabc")
-
-
-def test_parser_choice_match_partial_2():
-    parser_a = parser_seq([parser_char("a"), parser_char("b")])
-    parser_b = parser_char("c")
-
-    parser = parser_choice([parser_a, parser_b])
-
-    check_invalid(parser("ac"), "ac")
-
-
-def test_parser_map_no_match():
-    parser = parser_char("x")
-    parser = parser_map(parser, lambda x: 1)
-
-    check_invalid(parser("ac"), "ac")
-
-
-def test_parser_map_return_none():
-    parser = parser_char("x")
-    parser = parser_map(parser, lambda x: None)
-
-    check_invalid(parser("xxx"), "xxx")
-
-
-def test_parser_map_valid():
-    parser = parser_choice([
-        parser_char("a"),
-        parser_char("b")
-    ])
-    parser = parser_map(parser, lambda x: x == "a")
-
-    check_invalid(parser("xxx"), "xxx")
-    check_valid(parser("ax"), True, "x")
-    check_valid(parser("bx"), False, "x")
-
-
-def test_parser_string_empty():
-    parser = parser_string("")
-
-    check_valid(parser(""), "", "")
-    check_valid(parser("ax"), "", "ax")
-
-
-def test_parser_string():
-    parser = parser_string("abc")
-
-    check_invalid(parser("a"), "a")
-    check_invalid(parser("ab"), "ab")
-    check_valid(parser("abc"), "abc", "")
-    check_valid(parser("abca"), "abc", "a")
-
-
-def test_parser_matches():
-    parser = parser_matches(lambda c: c == "x" or c == "y")
-
-    check_invalid(parser("a"), "a")
-    check_valid(parser("xy"), "x", "y")
-    check_valid(parser("yx"), "y", "x")
-
-
-def test_parser_int_invalid():
-    parser = parser_int()
-
-    check_invalid(parser("a"), "a")
-    check_invalid(parser(" 1"), " 1")
-    check_invalid(parser("x42"), "x42")
-
-
-def test_parser_int_valid():
-    parser = parser_int()
-
-    check_valid(parser("1"), 1, "")
-    check_valid(parser("42xxy"), 42, "xxy")
-
-
-def test_json_basic():
-    """
-    You can try to add more functions, like parser_opt (optionally parses something) and build
-    a full-fledged JSON parser :)
-    """
-    number = parser_int()
-    boolean = parser_map(parser_choice([
-        parser_string("true"),
-        parser_string("false")
-    ]), lambda c: c == "true")
-    string_inner = parser_map(
-        parser_repeat(parser_matches(lambda c: c in string.ascii_letters or c.isdigit() or c in (" ", "_"))),
-        lambda chars: "".join(chars)
+def test_game_of_life_move():
+    assert GameOfLife((
+        ('.', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', '.', '.')
+    )).move().board == (
+        ('.', '.', '.'),
+        ('.', '.', '.'),
+        ('x', 'x', 'x'),
+        ('.', '.', '.'),
+        ('.', '.', '.')
     )
-    string_complete = parser_seq([
-        parser_char('"'),
-        string_inner,
-        parser_char('"')
-    ])
-    string_complete = parser_map(string_complete, lambda s: s[1])  # skip " "
-    value = parser_choice([
-        number,
-        boolean,
-        string_complete
-    ])
 
-    check_invalid(value("t"), "t")
-    check_invalid(value("tru"), "tru")
-    check_valid(value("true"), True, "")
-    check_valid(value("false"), False, "")
+    assert GameOfLife((
+        ('.', '.', '.', '.'),
+        ('.', 'x', 'x', '.'),
+        ('.', 'x', 'x', '.'),
+        ('.', '.', '.', '.'),
+    )).move().board == (
+        ('.', '.', '.', '.'),
+        ('.', 'x', 'x', '.'),
+        ('.', 'x', 'x', '.'),
+        ('.', '.', '.', '.'),
+    )
 
-    check_valid(value("123"), 123, "")
+    assert GameOfLife((
+        ('x', '.', '.'),
+        ('.', 'x', 'x'),
+        ('x', 'x', '.'),
+    )).move().board == (
+        ('.', 'x', '.'),
+        ('.', '.', 'x'),
+        ('x', 'x', 'x'),
+    )
 
-    check_invalid(value('"'), '"')
-    check_valid(value('""x'), "", "x")
-    check_valid(value('"true"x'), "true", "x")
-    check_valid(value('"123"x'), "123", "x")
-    check_valid(value('"hello_123 foo"x'), "hello_123 foo", "x")
+
+def test_game_of_life_move_immutable():
+    board = (
+        ('.', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', '.', '.')
+    )
+
+    g = GameOfLife(board)
+    n = g.move()
+    assert id(n.board) != id(board)
+    assert board == (
+        ('.', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', '.'),
+        ('.', '.', '.')
+    )
+    assert n.board == (
+        ('.', '.', '.'),
+        ('.', '.', '.'),
+        ('x', 'x', 'x'),
+        ('.', '.', '.'),
+        ('.', '.', '.')
+    )
+
+
+def test_game_of_life_print():
+    g = GameOfLife((
+        ('x', '.', '.'),
+        ('.', 'x', '.'),
+        ('.', 'x', 'x')
+    ))
+    assert str(g) == "x..\n.x.\n.xx\n"
