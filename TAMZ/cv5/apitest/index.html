@@ -4,106 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TAMZ22 Token App + Jokes</title>
-    <style>
-        body {
-            font-family: system-ui, -apple-system, sans-serif;
-            padding: 20px;
-            max-width: 500px;
-            margin: 0 auto;
-            background-color: #f9f9f9;
-        }
-        .container {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        input[readonly] {
-            background-color: #e9ecef;
-            color: #495057;
-            cursor: not-allowed;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #0056b3;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #004494;
-        }
-        .output-box {
-            margin-top: 20px;
-            padding: 15px;
-            background: #222;
-            color: #0f0;
-            border-radius: 4px;
-            font-family: monospace;
-            min-height: 60px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .joke-box {
-            background: #e3f2fd;
-            color: #0277bd;
-            border-left: 5px solid #0288d1;
-            font-family: inherit;
-        }
-    </style>
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css">
 </head>
 <body>
+    <ion-app>
+        <ion-content class="ion-padding">
+            <div class="ion-padding">
+                <h2 class="ion-text-center">TAMZ Token Fetcher</h2>
 
-<div class="container">
-    <h2>TAMZ Token Fetcher</h2>
+                <ion-item class="ion-margin-bottom">
+                    <ion-label position="floating">Username (Login):</ion-label>
+                    <ion-input id="username" placeholder="Enter your login" required></ion-input>
+                </ion-item>
 
-    <div class="form-group">
-        <label for="username">Username (Login):</label>
-        <input type="text" id="username" placeholder="Enter your login" required>
-    </div>
+                <ion-item class="ion-margin-bottom">
+                    <ion-label position="floating">Script URL:</ion-label>
+                    <ion-input id="scriptUrl" readonly value="https://homel.vsb.cz/~mor03/TAMZ/TAMZ22.php"></ion-input>
+                </ion-item>
 
-    <div class="form-group">
-        <label for="scriptUrl">Script URL:</label>
-        <input type="text" id="scriptUrl" value="https://homel.vsb.cz/~mor03/TAMZ/TAMZ22.php">
-    </div>
+                <ion-button expand="block" onclick="executeRequests()">Run Process</ion-button>
 
-    <button onclick="executeRequests()">Run Process</button>
+                <ion-item class="ion-margin-top">
+                    <ion-label position="floating">Decoded Token (Read-Only):</ion-label>
+                    <ion-input id="decodedToken" readonly placeholder="Decoded token will appear here" disabled></ion-input>
+                </ion-item>
 
-    <hr style="margin: 25px 0; border: 0; border-top: 1px solid #ddd;">
+                <div class="ion-margin-top">
+                    <ion-label class="ion-display-flex">A Quick Joke For You:</ion-label>
+                    <ion-card class="ion-margin-top">
+                        <ion-card-content id="jokeOutput">Waiting for a joke...</ion-card-content>
+                    </ion-card>
+                </div>
 
-    <div class="form-group">
-        <label for="decodedToken">Decoded Token (Read-Only):</label>
-        <input type="text" id="decodedToken" readonly placeholder="Decoded token will appear here">
-    </div>
-
-    <div class="form-group">
-        <label>A Quick Joke For You:</label>
-        <div id="jokeOutput" class="output-box joke-box">Waiting for a joke...</div>
-    </div>
-
-    <label>Server Response:</label>
-    <div id="output" class="output-box">Waiting for action...</div>
-</div>
+                <div class="ion-margin-top">
+                    <ion-label class="ion-display-flex">Server Response:</ion-label>
+                    <ion-card class="ion-margin-top">
+                        <ion-card-content id="output" style="white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px;">Waiting for action...</ion-card-content>
+                    </ion-card>
+                </div>
+            </div>
+        </ion-content>
+    </ion-app>
+    <script src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic.js"></script>
 
 <script>
     async function executeRequests() {
@@ -113,7 +56,6 @@
         const outputDiv = document.getElementById('output');
         const jokeDiv = document.getElementById('jokeOutput');
 
-        // Reset fields
         decodedTokenInput.value = '';
         outputDiv.innerText = 'Processing...';
         jokeDiv.innerText = 'Loading joke...';
@@ -126,37 +68,35 @@
         }
 
         try {
-            // --- STEP 1: First Request (TAMZ Server) ---
             const timestamp = Date.now();
             const urlWithParams = new URL(scriptUrl);
             urlWithParams.searchParams.append('user', username);
             urlWithParams.searchParams.append('timestamp', timestamp);
 
-            outputDiv.innerText = 'Sending Request 1 (Fetching token)...';
+            outputDiv.innerText = 'Sending Request 1...';
 
-            const response1 = await fetch(urlWithParams.toString(), { method: 'GET' });
+            const response1 = await fetch(urlWithParams.toString(), {
+                 method: 'GET' 
+                });
 
             if (!response1.ok) throw new Error(`First request failed: ${response1.status}`);
 
             const tokenBase64 = await response1.text();
             const cleanToken = tokenBase64.trim(); 
 
-            // Decode and show token
             try {
                 decodedTokenInput.value = atob(cleanToken);
             } catch (decodeErr) {
                 throw new Error("Failed to decode token.");
             }
 
-            // --- STEP 1.5: The Joke Request (NEW) ---
-            // We use a safe URL so we don't get anything wildly inappropriate for a school assignment!
+
+            //joke 
             try {
                 const jokeResponse = await fetch('https://v2.jokeapi.dev/joke/Any?safe-mode');
                 
-                // IMPORTANT: Notice we use .json() here instead of .text()
                 const jokeData = await jokeResponse.json(); 
 
-                // The Joke API returns either a 'single' line joke, or a 'twopart' (setup/delivery) joke
                 if (jokeData.type === 'single') {
                     jokeDiv.innerText = jokeData.joke;
                 } else {
@@ -167,8 +107,7 @@
                 jokeDiv.innerText = "Oops, couldn't fetch a joke right now!";
             }
 
-            // --- STEP 2: Second Request (TAMZ Server POST) ---
-            outputDiv.innerText = 'Sending Request 2 (Posting with Bearer token)...';
+            outputDiv.innerText = 'Sending Request 2...';
 
             const response2 = await fetch(scriptUrl, {
                 method: 'POST', 
