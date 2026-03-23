@@ -157,6 +157,7 @@ def test_game_of_life_count():
         ('.', '.', '.'),
         ('.', '.', '.')
     ))
+
     assert g.alive() == 0
     assert g.dead() == 9
 

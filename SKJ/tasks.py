@@ -193,18 +193,15 @@ class UpperCaseDecorator:
         ICE TO
     """
     def __init__(self, f):
-        self.f = f
-        
-
+        self.file = f
 
     def write(self, s):
-        
-        pass
+        filtered = ''.join(c.upper() for c in s if not c.isupper())
+        self.file.write(filtered)
 
-    def writelines(self):
-        pass
-
-    pass
+    def writelines(self, lines):
+        processed_lines = [''.join(c.upper() for c in line if not c.isupper()) for line in lines]
+        self.file.writelines(processed_lines)
 
 
 class GameOfLife:
@@ -253,33 +250,93 @@ class GameOfLife:
         Create a constructor that receives the game board and stores it in an attribute called
         'board'.
         """
-        pass
+        self.board = board
 
     def move(self):
         """
         Simulate one iteration of the game and return a new instance of GameOfLife containing
         the new board state.
+
+        x = alive
+        . = dead
         """
-        pass
+        def countAliveNeigbors(x,y):
+            dirs = [(-1, -1), (-1,0), (-1,1), (0, -1), (0, 1), (1, -1), (1,0), (1,1)]
+            count = 0
+
+            rows = len(self.board)
+            cols = len(self.board[0])
+
+
+            for dirx, diry in dirs:
+               neighx = x + dirx
+               neighy = y + diry
+               if 0 <= neighx < rows and 0 <= neighy < cols:
+                   if self.board[neighx][neighy] == 'x':
+                       count += 1
+            
+            return count
+
+        new_board = []
+        for i in range(len(self.board)):
+            new_row = []
+            for j in range(len(self.board[0])):
+                live_neighbors = countAliveNeigbors(i,j)
+                if(self.board[i][j] == 'x'):
+                    if live_neighbors in (2,3):
+                        new_row.append('x')
+                    else:
+                        new_row.append('.')
+
+                else:
+                    if live_neighbors == 3:
+                        new_row.append('x')
+                    else:
+                        new_row.append('.')
+
+            new_board.append(tuple(new_row))
+        return GameOfLife(tuple(new_board))
 
     def alive(self):
         """
         Return the number of cells that are alive.
         """
-        pass
+        sum = 0
+
+        for row in self.board:
+            for col in row:
+                if col == 'x':
+                    sum += 1
+
+        return sum
 
     def dead(self):
         """
         Return the number of cells that are dead.
         """
-        pass
+        sum = 0
+
+        for row in self.board:
+            for col in row:
+                if col == '.':
+                    sum += 1
+
+        return sum
 
     def __repr__(self):
         """
         Return a string that represents the state of the board in a single string (with newlines
         for each board row).
         """
-        pass
+        result = ""
+
+        for row in self.board:
+            for col in row:
+                result += col
+            result += "\n"
+
+        return result
+        
 
 
 def play_game(game, n):
