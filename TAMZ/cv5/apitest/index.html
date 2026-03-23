@@ -23,7 +23,9 @@
                     <ion-input id="scriptUrl" readonly value="https://homel.vsb.cz/~mor03/TAMZ/TAMZ22.php"></ion-input>
                 </ion-item>
 
-                <ion-button expand="block" onclick="executeRequests()">Run Process</ion-button>
+                <ion-button expand="block" onclick="getTokenFromFirstResponse()" color="primary">1. Get Code from Response</ion-button>
+                <ion-button expand="block" onclick="sendTokeninSecondRequest()" color="success" class="ion-margin-top">2. Send Code</ion-button>
+                <ion-button expand="block" onclick="getJokeFromAPI()" color="warning" class="ion-margin-top">3. Get Joke</ion-button>
 
                 <ion-item class="ion-margin-top">
                     <ion-label position="floating">Decoded Token (Read-Only):</ion-label>
@@ -49,21 +51,19 @@
     <script src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic.js"></script>
 
 <script>
-    async function executeRequests() {
+    let storedToken = '';
+
+    async function getTokenFromFirstResponse() {
         const username = document.getElementById('username').value.trim();
         const scriptUrl = document.getElementById('scriptUrl').value.trim();
-        const decodedTokenInput = document.getElementById('decodedToken');
         const outputDiv = document.getElementById('output');
-        const jokeDiv = document.getElementById('jokeOutput');
+        const decodedTokenInput = document.getElementById('decodedToken');
 
-        decodedTokenInput.value = '';
         outputDiv.innerText = 'Processing...';
-        jokeDiv.innerText = 'Loading joke...';
 
         if (!username) {
             alert('Please enter your username first.');
             outputDiv.innerText = 'Error: Missing username.';
-            jokeDiv.innerText = 'Waiting...';
             return;
         }
 
@@ -82,48 +82,72 @@
             if (!response1.ok) throw new Error(`First request failed: ${response1.status}`);
 
             const tokenBase64 = await response1.text();
-            const cleanToken = tokenBase64.trim(); 
+            storedToken = tokenBase64.trim(); 
 
             try {
-                decodedTokenInput.value = atob(cleanToken);
+                decodedTokenInput.value = atob(storedToken);
             } catch (decodeErr) {
                 throw new Error("Failed to decode token.");
             }
 
+            outputDiv.innerText = '✓ Token received and decoded successfully!\n\nNow click "2. Send Code" to proceed.';
 
-            //joke 
-            try {
-                const jokeResponse = await fetch('https://v2.jokeapi.dev/joke/Any?safe-mode');
-                
-                const jokeData = await jokeResponse.json(); 
+        } catch (error) {
+            console.error(error);
+            outputDiv.innerText = `Error:\n${error.message}`;
+            storedToken = '';
+        }
+    }
 
-                if (jokeData.type === 'single') {
-                    jokeDiv.innerText = jokeData.joke;
-                } else {
-                    jokeDiv.innerText = `${jokeData.setup}\n\n... ${jokeData.delivery}`;
-                }
-            } catch (jokeError) {
-                console.warn("Joke API failed, but we won't stop the main app.", jokeError);
-                jokeDiv.innerText = "Oops, couldn't fetch a joke right now!";
-            }
+    async function sendTokeninSecondRequest() {
+        const scriptUrl = document.getElementById('scriptUrl').value.trim();
+        const outputDiv = document.getElementById('output');
 
+        if (!storedToken) {
+            alert('Please click "1. Get Code from Response" first to get the token.');
+            outputDiv.innerText = 'Error: No token available. Click button 1 first.';
+            return;
+        }
+
+        try {
             outputDiv.innerText = 'Sending Request 2...';
 
             const response2 = await fetch(scriptUrl, {
                 method: 'POST', 
                 headers: {
-                    'Authorization': 'Bearer ' + cleanToken
+                    'Authorization': 'Bearer ' + storedToken
                 }
             });
 
             if (!response2.ok) throw new Error(`Second request failed: ${response2.status}`);
 
             const finalReply = await response2.text();
-            outputDiv.innerText = `Final Server Reply:\n\n${finalReply}`;
+            outputDiv.innerText = `✓ Request 2 successful!\n\nFinal Server Reply:\n\n${finalReply}`;
 
         } catch (error) {
             console.error(error);
             outputDiv.innerText = `Error:\n${error.message}`;
+        }
+    }
+
+    async function getJokeFromAPI() {
+        const jokeDiv = document.getElementById('jokeOutput');
+
+        try {
+            jokeDiv.innerText = 'Loading joke...';
+
+            const jokeResponse = await fetch('https://v2.jokeapi.dev/joke/Any?safe-mode');
+            
+            const jokeData = await jokeResponse.json(); 
+
+            if (jokeData.type === 'single') {
+                jokeDiv.innerText = jokeData.joke;
+            } else {
+                jokeDiv.innerText = `${jokeData.setup}\n\n... ${jokeData.delivery}`;
+            }
+        } catch (jokeError) {
+            console.error("Joke API failed:", jokeError);
+            jokeDiv.innerText = "Oops, couldn't fetch a joke right now!";
         }
     }
 </script>
