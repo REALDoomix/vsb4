@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Currency Converter</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core@7/css/ionic.bundle.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@ionic/core@7/dist/ionic.js"></script>
+</head>
+<body>
+  <ion-app>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Currency Converter</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding">
+      <ion-item>
+        <ion-label position="floating">Select Date</ion-label>
+        <ion-input type="date" id="dateInput"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="floating">Amount</ion-label>
+        <ion-input type="number" id="amountInput" value="1"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>From Currency</ion-label>
+        <ion-select id="fromCurrency"></ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>To Currency</ion-label>
+        <ion-select id="toCurrency"></ion-select>
+      </ion-item>
+
+      <ion-item>
+        <ion-label>Converted Amount</ion-label>
+        <ion-input id="convertedAmount" readonly></ion-input>
+      </ion-item>
+
+      <ion-button expand="block" id="refreshButton">Refresh Rates</ion-button>
+    </ion-content>
+  </ion-app>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const apiUrl = 'http://linedu.vsb.cz/~mor03/TAMZ/cnb_json.php';
+      let exchangeData = [];
+
+      const dateInput = document.getElementById('dateInput');
+      const amountInput = document.getElementById('amountInput');
+      const fromCurrency = document.getElementById('fromCurrency');
+      const toCurrency = document.getElementById('toCurrency');
+      const convertedAmount = document.getElementById('convertedAmount');
+      const refreshButton = document.getElementById('refreshButton');
+
+      function fetchExchangeRates() {
+        const date = dateInput.value || new Date().toISOString().split('T')[0];
+        const url = `${apiUrl}?date=${date}`;
+
+        fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            exchangeData = data.data || [];
+            populateCurrencySelects();
+          })
+          .catch(error => {
+            console.error('Error fetching exchange rates:', error);
+          });
+      }
+
+      function populateCurrencySelects() {
+        fromCurrency.innerHTML = '';
+        toCurrency.innerHTML = '';
+
+        exchangeData.forEach(currency => {
+          const optionFrom = document.createElement('ion-select-option');
+          optionFrom.value = currency.code;
+          optionFrom.textContent = `${currency.code} - ${currency.country_label}`;
+          fromCurrency.appendChild(optionFrom);
+
+          const optionTo = document.createElement('ion-select-option');
+          optionTo.value = currency.code;
+          optionTo.textContent = `${currency.code} - ${currency.country_label}`;
+          toCurrency.appendChild(optionTo);
+        });
+      }
+
+      function convertCurrency() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const fromCode = fromCurrency.value;
+        const toCode = toCurrency.value;
+
+        const fromRate = exchangeData.find(c => c.code === fromCode);
+        const toRate = exchangeData.find(c => c.code === toCode);
+
+        if (fromRate && toRate) {
+          const czkAmount = (amount * parseFloat(fromRate.rate)) / parseFloat(fromRate.unit);
+          const converted = (czkAmount * parseFloat(toRate.unit)) / parseFloat(toRate.rate);
+          convertedAmount.value = converted.toFixed(2);
+        }
+      }
+
+      dateInput.addEventListener('change', fetchExchangeRates);
+      amountInput.addEventListener('input', convertCurrency);
+      fromCurrency.addEventListener('ionChange', convertCurrency);
+      toCurrency.addEventListener('ionChange', convertCurrency);
+      refreshButton.addEventListener('click', fetchExchangeRates);
+
+      // Initialize
+      dateInput.value = new Date().toISOString().split('T')[0];
+      fetchExchangeRates();
+    });
+  </script>
+</body>
+</html>
