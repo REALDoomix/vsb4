@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+
+<!-- =============================================================
+    TODO 1: Přidání důležitých termínů
+    =============================================================
+    Vytvořte novou ion-card, ve které zobrazíte 3 důležité termíny
+    (např. konec semestru, zkouška, servis ...).
+
+    Harmonogram semestru: https://www.vsb.cz/cs/student/harmonogram/
+    Ověření výsledků: https://www.timeanddate.com/date/durationresult.html
+-->
+
+
+<!-- =============================================================
+    TODO 3: Progress bar průběhu semestru
+    =============================================================
+    Přidejte ion-card s komponentou ion-progress-bar, která
+    zobrazí, kolik procent semestru již uběhlo.
+
+    Dokumentace: https://ionicframework.com/docs/api/progress-bar
+-->
+
+<!-- =============================================================
+    TODO 4: Toast upozornění na blízké termíny
+    =============================================================
+    Při načtení stránky zkontrolujte, zda je některý termín
+    za 7 nebo méně dnů. Pokud ano, zobrazte ion-toast
+    s upozorněním.
+
+    Dokumentace: https://ionicframework.com/docs/api/toast
+-->
+
+<!-- =============================================================
+    BONUS: Živý odpočet v reálném čase
+    =============================================================
+    Přidejte kartu, která zobrazuje odpočet do konce semestru například
+    ve formátu: "93d 14h 23m 45s" a aktualizuje se každou sekundu.
+
+    HINT: Použijte setInterval
+-->
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" rel="stylesheet">
+</head>
+
+<body>
+    <ion-app>
+
+        <ion-header>
+            <ion-toolbar>
+                <ion-title>Termíny</ion-title>
+            </ion-toolbar>
+        </ion-header>
+
+        <ion-content class="ion-padding">
+
+            <!-- Karta: Aktualni datum -->
+            <ion-card>
+                <ion-card-content>
+                    <ion-text id="actualDate" style="display: block; font-size:110%; padding-bottom: 5px">
+                        Dnešní datum: 00/00/0000
+                    </ion-text>
+                    <ion-progress-bar id="io-progress-bar">
+
+                    </ion-progress-bar>
+                </ion-card-content>
+            </ion-card>
+
+            <!-- Karta: Ukazka ion-datetime -->
+            <ion-card>
+                <ion-card-content>
+                    <ion-text style="display: block; font-size:150%; text-align: center;">
+                        Zadej datum
+                    </ion-text>
+                    <p style="text-align: center; padding-bottom: 5px">
+                        <ion-datetime-button datetime="datetime"></ion-datetime-button>
+                        <ion-modal>
+                            <ion-datetime id="datetime" locale="cs-CZ" presentation="date"
+                                show-default-buttons="true"></ion-datetime>
+                        </ion-modal>
+                    </p>
+                    <ion-text id="selectedDate" style="display: block; font-size:110%; padding-top: 5px; padding-bottom: 5px">
+                        Zvolené datum: ---
+                    </ion-text>
+                </ion-card-content>
+            </ion-card>
+
+
+
+<!-- =============================================================
+    TODO 2: Barevné rozlišení zbývajících dnů
+    =============================================================
+    Podle počtu zbývajících dnů změňte barvu textu termínu, například:
+    - méně než 7 dnů   → červeně 
+    - méně než 30 dnů  → oranžově 
+    - 30 a více dnů    → zeleně 
+    - v minulosti      → šedě
+-->
+
+<ion-card>
+              <ion-card-header>
+                <ion-card-title>Důležité termíny</ion-card-title>
+              </ion-card-header>
+
+              <ion-card-content id="firstDate">
+                
+              </ion-card-content>
+              <ion-card-content id="secondDate">
+                
+              </ion-card-content>
+              <ion-card-content id="thirdDate">
+                
+              </ion-card-content>
+
+              <ion-toast id="warning-toast" message="Některé termíny budou brzy expirovat, nebo již expirovaly! (<7 dní) " duration="5000"></ion-toast>
+</ion-card>
+
+<ion-card>
+    <ion-card-header>
+        <ion-card-title>Průběh semestru</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+        <ion-progress-bar id="progress-bar-sem">
+
+        </ion-progress-bar>
+        <span id="progressSemestru"></span>
+    </ion-card-content>
+</ion-card>
+
+<ion-card>
+              <ion-card-header>
+                <ion-card-title>Čas do konce semestru</ion-card-title>
+              </ion-card-header>
+
+              <ion-card-content id="doKonceSemestru">
+                
+              </ion-card-content>
+
+                
+</ion-card>
+
+        </ion-content>
+
+    </ion-app>
+
+    <script type="module">
+
+        import { differenceInMilliseconds, differenceInHours, differenceInSeconds, differenceInMinutes, differenceInDays } from "date-fns";
+
+        // https://www.w3schools.com/js/js_variables.asp
+
+        let dateText = document.getElementById('selectedDate');
+
+        let progressB = document.getElementById('io-progress-bar');
+
+        let progressBSem = document.getElementById('progress-bar-sem');
+
+
+        //let progress = 0;
+
+        
+
+        //console.log(konec);
+
+        let currentDate = new Date();
+
+
+        //console.log(currentDate);
+
+
+        // datumy
+        //16.02.2026 - Začátek výuky v letním semestru
+        let zacVyuky = new Date('2026-2-16');
+
+        //22.04.2026 - Sportovní den
+        let sportDay = new Date('2026-4-22');
+
+        // 16.5.2026 - Konec výuky v letním semestru
+        let konec = new Date('2026-5-16');
+
+        let pocetDniOdZac = differenceInDays(currentDate,zacVyuky);
+
+        let maxPocetDni = differenceInDays(konec,zacVyuky);
+        
+        progressBSem.value =  pocetDniOdZac / maxPocetDni;
+
+        document.getElementById('progressSemestru').innerHTML = `(${pocetDniOdZac}/${maxPocetDni})`;
+
+        
+        
+        
+
+        //console.log(differenceInDays(currentDate,zacVyuky) / differenceInDays(konec,zacVyuky));
+        //console.log(differenceInDays(konec,zacVyuky));
+        
+
+
+        let actDate = document.getElementById('actualDate');
+
+        
+
+        let first = document.getElementById('firstDate');
+        let second = document.getElementById('secondDate');
+        let third = document.getElementById('thirdDate');
+
+        let arr = [first,second,third];
+
+        //Výpis důležitých termínů
+
+        first.innerHTML = `Začátek výuky v letním semestru: ${zacVyuky.getDate()}. ${zacVyuky.getMonth()+1}. ${zacVyuky.getFullYear()}
+        <br>
+        Zbylých dnů: <div id="vys0">${Math.ceil((zacVyuky - currentDate) / 1000 / 60 / 60 / 24)}</div>`;
+
+        second.innerHTML = `Sportovní den: ${sportDay.getDate()}. ${sportDay.getMonth()+1}. ${sportDay.getFullYear()}
+        <br>
+        Zbylých dnů: <div id="vys1">${Math.ceil((sportDay - currentDate) / 1000 / 60 / 60 / 24)}</div>`;
+
+        third.innerHTML = `Konec výuky v letním semestru: ${konec.getDate()}. ${konec.getMonth()+1}. ${konec.getFullYear()}
+        <br>
+        Zbylých dnů: <div id="vys2">${Math.ceil((konec - currentDate) / 1000 / 60 / 60 / 24)}</div>`;
+
+
+        actDate.innerHTML = "Dnešní datum: " + currentDate.getDate() + "/" + (currentDate.getMonth() + 1) + "/" + currentDate.getFullYear();
+
+        //Nastavení progress baru
+        progressB.value = currentDate.getDate() / 31;
+
+        var toast = document.getElementById('warning-toast');
+
+        // pro každý prvek v arr (zde jsou "uloženy" termíny, zkontrolujeme jak zabarvit výsledek (1 den a méně červeně, více než jeden den zeleně))
+
+        for (let i in arr)
+        {
+            if(document.getElementById(`vys${i}`).textContent <= 7){
+                 toast.isOpen = true;   
+            }
+
+            if (document.getElementById(`vys${(i)}`).textContent <= 0){
+                arr[i].style.color = '#4d4f4d';
+            }
+            else if (document.getElementById(`vys${(i)}`).textContent > 0 && document.getElementById(`vys${(i)}`).textContent < 30){
+                arr[i].style.color = '#f58300';
+            } else {
+                arr[i].style.color = '#10f500';
+            }
+        }
+
+
+        //Čas do konce semestru v ms    / 1000 / 60 / 60 / 24
+
+
+
+        let doKonceSem = document.getElementById('doKonceSemestru');
+
+        function updateCountdown() {
+                let now = new Date();
+
+                let vysledek = konec - now;
+
+                let dny = differenceInDays(konec,now);
+                let hodiny = differenceInHours(konec,now)%24; 
+                let minuty = differenceInMinutes(konec,now)%60; 
+                let sekundy = differenceInSeconds(konec,now)%60;
+                let ms = differenceInMilliseconds(konec,now)%1000;
+
+                doKonceSem.innerHTML = `Do konce semestru zbývá: ${dny} dní, ${hodiny} hodin, ${minuty} minut,  ${sekundy} sekund.`;
+
+        }
+
+        let timer = setInterval(updateCountdown,1000);
+        updateCountdown();
+
+
+
+
+        //if(document.getElementById('vys1').textContent < 0){
+        //    document.getElementById('firstDate').style.color = '#a60505';
+        //}
+
+        //console.log();
+
+
+
+        // === Ukazka: reakce na vyber data v ion-datetime ===
+        let dateTimeHtml = document.getElementById('datetime');
+        dateTimeHtml.addEventListener("ionChange", function (e) {
+            let selected = new Date(this.value);
+            console.log("selected",selected);
+
+            dateText.innerHTML =  `Zvolené datum: ${selected.getDate() + ". " + (selected.getMonth()+1) + ". " + selected.getFullYear()}`;
+
+        });
+
+    </script>
+
+</body>
+
+</html>

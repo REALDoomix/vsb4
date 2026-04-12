@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TAMZ22 Token App + Jokes</title>
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css">
+</head>
+<body>
+    <ion-app>
+        <ion-content class="ion-padding">
+            <div class="ion-padding">
+                <h2 class="ion-text-center">TAMZ Token Fetcher</h2>
+
+                <ion-item class="ion-margin-bottom">
+                    <ion-label position="floating">Username (Login):</ion-label>
+                    <ion-input id="username" placeholder="Enter your login" required></ion-input>
+                </ion-item>
+
+                <ion-item class="ion-margin-bottom">
+                    <ion-label position="floating">Script URL:</ion-label>
+                    <ion-input id="scriptUrl" readonly value="https://homel.vsb.cz/~mor03/TAMZ/TAMZ22.php"></ion-input>
+                </ion-item>
+
+                <ion-button expand="block" onclick="getTokenFromFirstResponse()" color="primary">1. Get Code from Response</ion-button>
+                <ion-button expand="block" onclick="sendTokeninSecondRequest()" color="success" class="ion-margin-top">2. Send Code</ion-button>
+                <ion-button expand="block" onclick="getJokeFromAPI()" color="warning" class="ion-margin-top">3. Get Joke</ion-button>
+
+                <ion-item class="ion-margin-top">
+                    <ion-label position="floating">Decoded Token (Read-Only):</ion-label>
+                    <ion-input id="decodedToken" readonly placeholder="Decoded token will appear here" disabled></ion-input>
+                </ion-item>
+
+                <div class="ion-margin-top">
+                    <ion-label class="ion-display-flex">A Quick Joke For You:</ion-label>
+                    <ion-card class="ion-margin-top">
+                        <ion-card-content id="jokeOutput">Waiting for a joke...</ion-card-content>
+                    </ion-card>
+                </div>
+
+                <div class="ion-margin-top">
+                    <ion-label class="ion-display-flex">Server Response:</ion-label>
+                    <ion-card class="ion-margin-top">
+                        <ion-card-content id="output" style="white-space: pre-wrap; word-wrap: break-word; font-family: monospace; font-size: 12px;">Waiting for action...</ion-card-content>
+                    </ion-card>
+                </div>
+            </div>
+        </ion-content>
+    </ion-app>
+    <script src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic.js"></script>
+
+<script>
+    let storedToken = '';
+
+    async function getTokenFromFirstResponse() {
+        const username = document.getElementById('username').value.trim();
+        const scriptUrl = document.getElementById('scriptUrl').value.trim();
+        const outputDiv = document.getElementById('output');
+        const decodedTokenInput = document.getElementById('decodedToken');
+
+        outputDiv.innerText = 'Processing...';
+
+        if (!username) {
+            alert('Please enter your username first.');
+            outputDiv.innerText = 'Error: Missing username.';
+            return;
+        }
+
+        try {
+            const timestamp = Date.now();
+            const urlWithParams = new URL(scriptUrl);
+            urlWithParams.searchParams.append('user', username);
+            urlWithParams.searchParams.append('timestamp', timestamp);
+
+            outputDiv.innerText = 'Sending Request 1...';
+
+            const response1 = await fetch(urlWithParams.toString(), {
+                 method: 'GET' 
+                });
+
+            if (!response1.ok) throw new Error(`First request failed: ${response1.status}`);
+
+            const tokenBase64 = await response1.text();
+            storedToken = tokenBase64.trim(); 
+
+            try {
+                decodedTokenInput.value = atob(storedToken);
+            } catch (decodeErr) {
+                throw new Error("Failed to decode token.");
+            }
+
+            outputDiv.innerText = '✓ Token received and decoded successfully!\n\nNow click "2. Send Code" to proceed.';
+
+        } catch (error) {
+            console.error(error);
+            outputDiv.innerText = `Error:\n${error.message}`;
+            storedToken = '';
+        }
+    }
+
+    async function sendTokeninSecondRequest() {
+        const scriptUrl = document.getElementById('scriptUrl').value.trim();
+        const outputDiv = document.getElementById('output');
+
+        if (!storedToken) {
+            alert('Please click "1. Get Code from Response" first to get the token.');
+            outputDiv.innerText = 'Error: No token available. Click button 1 first.';
+            return;
+        }
+
+        try {
+            outputDiv.innerText = 'Sending Request 2...';
+
+            const response2 = await fetch(scriptUrl, {
+                method: 'POST', 
+                headers: {
+                    'Authorization': 'Bearer ' + storedToken
+                }
+            });
+
+            if (!response2.ok) throw new Error(`Second request failed: ${response2.status}`);
+
+            const finalReply = await response2.text();
+            outputDiv.innerText = `✓ Request 2 successful!\n\nFinal Server Reply:\n\n${finalReply}`;
+
+        } catch (error) {
+            console.error(error);
+            outputDiv.innerText = `Error:\n${error.message}`;
+        }
+    }
+
+    async function getJokeFromAPI() {
+        const jokeDiv = document.getElementById('jokeOutput');
+
+        try {
+            jokeDiv.innerText = 'Loading joke...';
+
+            const jokeResponse = await fetch('https://v2.jokeapi.dev/joke/Any?safe-mode');
+            
+            const jokeData = await jokeResponse.json(); 
+
+            if (jokeData.type === 'single') {
+                jokeDiv.innerText = jokeData.joke;
+            } else {
+                jokeDiv.innerText = `${jokeData.setup}\n\n... ${jokeData.delivery}`;
+            }
+        } catch (jokeError) {
+            console.error("Joke API failed:", jokeError);
+            jokeDiv.innerText = "Oops, couldn't fetch a joke right now!";
+        }
+    }
+</script>
+
+</body>
+</html>

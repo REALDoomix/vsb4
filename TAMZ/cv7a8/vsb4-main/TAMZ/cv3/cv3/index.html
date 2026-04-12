@@ -1,0 +1,206 @@
+
+<!-- =============================================================
+    TODO 0: Zobrazení záznamů v ionic-list
+    =============================================================
+    Upravte funkci showItems() tak, aby se zobrazovaly správné
+    názvy záznamu v ion-list (místo HTML list).
+-->
+
+<!-- =============================================================
+    TODO 1: Smazání všech záznamů
+    =============================================================
+    Doplňte funkci, která odstraní všechny záznamy z úložiště
+    a aktualizuje zobrazený seznam.
+-->
+
+<!-- =============================================================
+    TODO 2: Přidání záznamu s vlastním názvem
+    =============================================================
+    Upravte přidávání tak, aby se jako název záznamu použil
+    text zadaný uživatelem (ion-input). 
+    Co použít jako vhodný klíč?
+-->
+
+<!-- =============================================================
+    TODO 3: Odstranění jednotlivého záznamu
+    =============================================================
+    Přidejte možnost odstranit konkrétní záznam ze seznamu
+    (např. tlačítkem u každé položky).
+-->
+
+<!-- =============================================================
+    Za splnění základních TODO 0-3 získáte 2 body.
+    Pokud vypracujete i některá z následujících rozšíření (bonus), 
+    můžete získat další 1 bod navíc.
+    =============================================================
+    - Vytvořte objekt reprezentující záznam a do úložiště ukládejte
+      a načítejte tento objekt pomocí JSON.stringify / JSON.parse.
+      Např.: { name: "Nákup", priority: "high" }
+    
+   
+    
+    - Použijte ion-item-sliding pro swipe-to-delete
+      https://ionicframework.com/docs/api/item-sliding
+    
+    - Přidejte ion-alert pro potvrzení smazání
+      https://ionicframework.com/docs/api/alert
+       
+    - Přidejte barvu/ikonu podle priority (ion-select + ion-icon)
+    
+    - Přidejte ion-badge s počtem položek do headeru
+      https://ionicframework.com/docs/api/badge
+-->
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css" rel="stylesheet">
+</head>
+
+<body>
+    <ion-app>
+        <ion-header>
+
+            <ion-toolbar>
+                <ion-title>Local Storage</ion-title>
+            </ion-toolbar>
+
+        </ion-header>
+
+        <ion-content class="ion-padding">
+
+            <ion-button id="button-list-1" onclick="showHList(50)">HTML List</ion-button>
+            <ion-button id="button-list-2" onclick="showIList(50)">Ionic List</ion-button>
+            <ion-button id="button-list-3" onclick="addSimpleItem()">LS add</ion-button>
+            <ion-button id="button-list-4" onclick="showItems()">LS read</ion-button>
+            <ion-button id="button-list-4" onclick="deleteAll()">Delete all</ion-button>
+
+            <ul id="html-list"> </ul>
+            <ion-list id="ionic-list" inset="true"> </ion-list>
+
+            
+
+        </ion-content>
+        <ion-footer class="ion-padding">
+            <ion-input id="item-name" placeholder="Název záznamu" label="Nový záznam" label-placement="floating" fill="outline"></ion-input>
+        </ion-footer>
+        
+    </ion-app>
+
+    <script>
+
+        window.addEventListener('load', function () {
+            showItems();
+        });
+
+        function deleteAll() {
+            localStorage.clear();
+            //for (let i = 1; i < localStorage.length+1; i++){
+              //localStorage.removeItem(`key-${i}`);
+            //}
+            showItems();
+        }
+
+        function showHList(n) {
+            console.log('showHList');
+            for (let i = 0; i < n; i++) {
+                let node = document.createElement("li");
+                node.innerText = i.toString();
+                document.getElementById("html-list").appendChild(node);
+            }
+        }
+
+        function showIList(n) {
+            console.log('showIList');
+            for (let i = 0; i < n; i++) {
+                let node = document.createElement("ion-item");
+                node.setAttribute("button", "true");
+                node.innerHTML = `<ion-label>${i.toString()}</ion-label>`;
+                document.getElementById("ionic-list").appendChild(node);
+            }
+        }
+
+        function addSimpleItem() {
+            input = document.getElementById('item-name');
+            name = input.value;
+
+            console.log(localStorage.length + 1)
+
+            key = "";
+
+            const length = localStorage.length;
+            if(localStorage.length == 0){
+                key = `key-${1}`;
+            } else{
+
+                let lastKey = 0;
+
+                for(let i = 0; i <= localStorage.length; i++){
+                    if (localStorage.key(i) == null){
+                        //console.log(`Key ${i} is null`);
+                        key = `key-${lastKey+1}`;
+                        lastKey = 0;
+                        break;
+                    } else {
+                         lastKey = Number(localStorage.key(i).substring(4));
+                         //console.log(`Key ${i} has a value`);
+                         //console.log(`Asserting last key as ${lastKey}`);
+                    }
+                }
+            }
+
+             
+            const record = { name: name, priority: "normal" };
+            localStorage.setItem(key, JSON.stringify(record));
+            console.log("localStorage.length: " + localStorage.length);
+
+            input.value = '';
+            showItems();
+        }
+
+        function showItems() {
+            let ionList = document.getElementById('ionic-list');
+            ionList.innerHTML = "";
+
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                let record = JSON.parse(localStorage.getItem(key));
+
+                let item = document.createElement("ion-item");
+                item.innerHTML = `
+                    <ion-label>(${key}) |  ${record.name}</ion-label>
+                    <ion-button slot="end" color="danger" onclick="deleteItem('${key}')">
+                        <ion-icon slot="icon-only" name="trash"></ion-icon>
+                    </ion-button>`;
+                ionList.appendChild(item);
+            }
+        }
+
+        async function deleteItem(key) {
+            const record = JSON.parse(localStorage.getItem(key));
+            const alert = Object.assign(document.createElement('ion-alert'), {
+                header: 'Smazat záznam',
+                message: `Opravdu chcete smazat "${record.name}"?`,
+                buttons: [
+                    { text: 'Zrušit', role: 'cancel' },
+                    { text: 'Smazat', role: 'destructive', handler: () => { localStorage.removeItem(key); showItems(); } }
+                ]
+            });
+            document.body.appendChild(alert);
+            await alert.present();
+        }
+
+        function itemClick(id) {
+            console.log("Item ID: " + id);
+        }
+
+    </script>
+
+</body>
+
+</html>
