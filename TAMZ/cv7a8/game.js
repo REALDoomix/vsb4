@@ -244,6 +244,7 @@ function pauseGame(scene){
     scene.scene.pause();
     pauseOverlay.setVisible(true);
     text.setVisible(false);
+    healthBar.setVisible(false);
     pauseText.setVisible(true);
     
 }
@@ -252,6 +253,7 @@ function resumeGame(scene){
     scene.scene.resume();
     pauseOverlay.setVisible(false);
     text.setVisible(true);
+    healthBar.setVisible(true);
     pauseText.setVisible(false);
 }
 
