@@ -1,0 +1,5 @@
+{
+  "appId": "camera.api",
+  "appName": "camera-api",
+  "webDir": "dist"
+}

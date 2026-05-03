@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Detektor</title>
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@ionic/core/css/ionic.bundle.css">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.esm.js"></script>
+    <script nomodule src="https://cdn.jsdelivr.net/npm/@ionic/core/dist/ionic/ionic.js"></script>
+    <script type="module" src="https://unpkg.com/@ionic/pwa-elements@latest/dist/ionicpwaelements/ionicpwaelements.esm.js"></script>
+</head>
+<body>
+    <ion-app>
+        <ion-content>
+        <ion-header collapse="fade">
+            <ion-toolbar>
+                <ion-title class="ion-text-center">AI photo processing app</ion-title>
+            </ion-toolbar>
+        </ion-header>
+        <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
+            <ion-card>
+                <ion-card-header>
+                    <ion-card-title class="ion-text-center">Akce:</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                    <ion-button id="btnFoto" expand="block">Vyfotit nebo vybrat fotku</ion-button>
+                    <ion-segment id="modeSelector">
+                        <ion-segment-button value="tags-v2">
+                            <ion-label>Tags v2</ion-label>
+                        </ion-segment-button>
+                        <ion-segment-button value="tags-v3">
+                            <ion-label>Tags v3</ion-label>
+                        </ion-segment-button>
+                        <ion-segment-button value="colors">
+                            <ion-label>Color Extraction</ion-label>
+                        </ion-segment-button>
+                        <ion-segment-button value="ocr">
+                            <ion-label>OCR</ion-label>
+                        </ion-segment-button>
+                    </ion-segment>
+                </ion-card-content>
+            </ion-card>
+            
+            <ion-card id="imageCard" style="display: none;">
+                <ion-card-header>
+                    <ion-card-title class="ion-text-center">Nahraná fotka:</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                    <img id="uploadedImage" style="width: 100%; border-radius: 8px;" />
+                </ion-card-content>
+            </ion-card>
+            
+            <ion-card id="resultsCard" style="display: none;">
+                <ion-card-header>
+                    <ion-card-title class="ion-text-center">Výsledky:</ion-card-title>
+                </ion-card-header>
+                <ion-card-content>
+                    <div id="vysledky" class="results-container"></div>
+                </ion-card-content>
+            </ion-card>
+        </div>
+    <script type="module" src="main.js"></script>
+    </ion-content>    
+    </ion-app>
+</body>
+</html>
