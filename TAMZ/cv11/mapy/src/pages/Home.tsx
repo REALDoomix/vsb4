@@ -2,7 +2,6 @@ import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/rea
 import ExploreContainer from '../components/ExploreContainer';
 import './Home.css';
 import MyMap from '../components/MyMap';
-import 'leaflet/dist/leaflet.css';
 
 const Home: React.FC = () => {
   return (
